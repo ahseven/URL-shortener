@@ -1,5 +1,5 @@
 import pyshorteners
-from urllib.request import urlopen
+import requests
 import qrcode
 from tkinter import Tk, Label
 from PIL import ImageTk
@@ -48,16 +48,28 @@ def link_shortener(link):
         optionalqrcode(short_link)
     except Exception as e:
         print("Something went wrong!")
+        
+
+
 def link_opener(link):
     try:
-        shortened_url = urlopen(link)
-        real_link = shortened_url.geturl()  # getting the real link
+        # Add headers
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Connection": "keep-alive"
+        }
+        response = requests.get(link, headers=headers, allow_redirects=True)
+        response.raise_for_status()  # Raise an exception for HTTP errors
 
-        # Display
-        print(f'\n[+] Real Link:  + {real_link}')
-        optionalqrcode(real_link) # getting back the original link
-    except Exception as e:
-        print("\nSomething went wrong!")
+        real_link = response.url  # Get the final URL after redirects
+        print(f'\n[+] Real Link: {real_link}')
+        optionalqrcode(real_link)
+        
+    except requests.exceptions.RequestException as e:
+        print(f"\nSomething went wrong! Error: {e}")
+
 
 def main():
     # Added a loop to reprompt user when they entered a different option than the ones given
